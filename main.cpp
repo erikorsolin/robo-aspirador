@@ -1,140 +1,15 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
-//#include "./array_stack.h"
 #include <fstream>
-
+#include <cstring>
+#include <vector>
+#include <utility>  // para std::pair
+#include "array_stack.h"
+#include "array_queue.h"
 using namespace std;
 
-// Copyright [2019] <COLOQUE SEU NOME AQUI...>
-#ifndef STRUCTURES_ARRAY_STACK_H
-#define STRUCTURES_ARRAY_STACK_H
-
-#include <cstdint>  // std::size_t
-#include <stdexcept>  // C++ exceptions
-
-namespace structures {
-
-template<typename T>
-//! CLASSE PILHA
-class ArrayStack {
- public:
-    //! construtor simples
-    ArrayStack();
-    //! construtor com parametro tamanho
-    explicit ArrayStack(std::size_t max);
-    //! destrutor
-    ~ArrayStack();
-    //! metodo empilha
-    void push(const T& data);
-    //! metodo desempilha
-    T pop();
-    //! metodo retorna o topo
-    T& top();
-    //! metodo limpa pilha
-    void clear();
-    //! metodo retorna tamanho
-    std::size_t size();
-    //! metodo retorna capacidade maxima
-    std::size_t max_size();
-    //! verifica se esta vazia
-    bool empty();
-    //! verifica se esta cheia
-    bool full();
-
- private:
-    T* contents;
-    int top_;
-    std::size_t max_size_;
-
-    static const auto DEFAULT_SIZE = 10u;
-};
-
-}  // namespace structures
-
-#endif
-
-
-template<typename T>
-structures::ArrayStack<T>::ArrayStack() {
-    max_size_ = DEFAULT_SIZE;
-    contents = new T[max_size_];
-    top_ = -1;
-}
-
-template<typename T>
-structures::ArrayStack<T>::ArrayStack(std::size_t max) {
-    max_size_ = max;
-    contents = new T[max_size_];
-    top_ = -1;
-}
-
-template<typename T>
-structures::ArrayStack<T>::~ArrayStack() {
-    delete [] contents;
-}
-
-template<typename T>
-void structures::ArrayStack<T>::push(const T& data) {
-    if (full()) {
-        throw std::out_of_range("pilha cheia");
-    } else {
-        top_++;
-        contents[top_] = data;
-    }
-}
-
-template<typename T>
-T structures::ArrayStack<T>::pop() {
-    if (empty()) {
-        throw std::out_of_range("pilha vazia");
-    } else {
-        int index_retorno = top_;
-        top_--;
-        return contents[index_retorno];
-    }
-}
-
-template<typename T>
-T& structures::ArrayStack<T>::top() {
-    return contents[top_];
-}
-
-template<typename T>
-void structures::ArrayStack<T>::clear() {
-    top_ = -1;
-}
-
-template<typename T>
-std::size_t structures::ArrayStack<T>::size() {
-    int index_retorno = top_ + 1;
-    return index_retorno;
-}
-
-template<typename T>
-std::size_t structures::ArrayStack<T>::max_size() {
-    return max_size_;
-}
-
-template<typename T>
-bool structures::ArrayStack<T>::empty() {
-    if (top_ == -1) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-template<typename T>
-bool structures::ArrayStack<T>::full() {
-    if ((top_ + 1) == static_cast<int>(max_size_)) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-/// @brief Essa função lê um arquivo dado arquivo, guarda as 
+/// @brief Essa função lê um arquivo dado, guarda as 
 /// informações em um vetor e retorna o ponteiro desse vetor
 /// @param xmlfilename Nome do arquivo que queremos transformar
 /// em vetor de caracteres
@@ -223,16 +98,148 @@ void verifica_vetor(char * buffer) {
     }
 }
 
-int main() {
 
+
+struct Cenario {
+    int** matriz;
+    int x, y, altura, largura;
+    std::string nome;  // Adicionar membro para armazenar o nome do cenário
+};
+
+std::vector<Cenario> arquivo_para_matriz(char* buffer) {
+    std::vector<Cenario> cenarios;
+    char* cenario_ptr = strstr(buffer, "<cenario>");
+
+    while (cenario_ptr) {
+        Cenario cenario;
+
+        char* nome_ptr = strstr(cenario_ptr, "<nome>");
+        char* altura_ptr = strstr(cenario_ptr, "<altura>");  // altura é y
+        char* largura_ptr = strstr(cenario_ptr, "<largura>"); // largura é x
+        char* matriz_ptr = strstr(cenario_ptr, "<matriz>");
+        char* x_ptr = strstr(cenario_ptr, "<x>");
+        char* y_ptr = strstr(cenario_ptr, "<y>");
+
+        if (nome_ptr && altura_ptr && largura_ptr && matriz_ptr && x_ptr && y_ptr) {
+            cenario.nome = std::string(nome_ptr + strlen("<nome>"), strstr(nome_ptr, "</nome>") - (nome_ptr + strlen("<nome>")));  // Extrair o nome do cenário
+            cenario.altura = atoi(altura_ptr + strlen("<altura>"));
+            cenario.largura = atoi(largura_ptr + strlen("<largura>"));
+            cenario.x = atoi(x_ptr + strlen("<x>"));
+            cenario.y = atoi(y_ptr + strlen("<y>"));
+
+            matriz_ptr += strlen("<matriz>");
+            std::string str_matriz;
+            for (int i = 0; i < cenario.altura * cenario.largura; i++) {
+                str_matriz.push_back(*matriz_ptr++);
+            }
+
+            cenario.matriz = new int*[cenario.altura];
+            for (int i = 0; i < cenario.altura; i++) {
+                cenario.matriz[i] = new int[cenario.largura];
+            }
+
+            int k = 0;
+            for (int i = 0; i < cenario.altura; i++) {
+                for (int j = 0; j < cenario.largura; j++) {
+                    cenario.matriz[i][j] = str_matriz[k++] - '0';
+                }
+            }
+
+            cenarios.push_back(cenario);
+        }
+
+        cenario_ptr = strstr(cenario_ptr + strlen("<cenario>"), "<cenario>");
+    }
+
+    return cenarios;
+}
+
+
+
+
+void verifica_area(int** matriz, int x, int y, int altura, int largura) {
+    structures::ArrayQueue<std::pair<int, int>> fila;
+    
+    // Criar uma matriz R de 0 (zeros) com o mesmo tamanho da matriz de entrada lida
+    int** R = new int*[altura];
+    for (int i = 0; i < altura; i++) {
+        R[i] = new int[largura]();
+    }
+
+    // Matriz[y][x] = Matriz[i][j]
+    fila.enqueue({y, x});
+    R[y][x] = 1;
+
+    // Enquanto a fila não estiver vazia
+    while (!fila.empty()) {
+        auto coord = fila.dequeue();
+        y = coord.first;
+        x = coord.second;
+        
+
+        // Definindo os vizinhos-4
+        std::pair<int, int> vizinhos[4] = {{y, x-1}, {y, x+1}, {y-1, x}, {y+1, x}};
+        
+        for (auto& vizinho : vizinhos) {
+            int ny = vizinho.first;
+            int nx = vizinho.second;
+        
+
+            // Verificar se o vizinho está dentro do domínio da matriz
+            if (nx >= 0 && nx < largura && ny >= 0 && ny < altura) {
+                // Verificar se o vizinho tem intensidade 1 em E e ainda não foi visitado em R
+                if (matriz[ny][nx] == 1 && R[ny][nx] == 0) {
+                    fila.enqueue({ny, nx});
+                    R[ny][nx] = 1;  // Marcar como visitado
+                }
+            }
+        }
+    }
+
+     // Contar a quantidade de 1s na matriz R para determinar a área do componente conexo
+    int area = 0;
+    for (int i = 0; i < altura; i++) {
+        for (int j = 0; j < largura; j++) {
+            if (R[i][j] == 1) {
+                area++;
+            }
+        }
+    }
+
+    std::cout << area << std::endl;
+
+    // Liberar memória alocada para R
+    for (int i = 0; i < altura; i++) {
+        delete[] R[i];
+    }
+    delete[] R;
+}
+
+
+
+
+int main() {
+    int caseNumber = 1;
     char xmlfilename[100];
     char * buffer;
-    cin >> xmlfilename;  // entrada
 
-    buffer = arquivo_para_vetor(xmlfilename);
+    while (cin >> xmlfilename) {
+        cout << "case=" << caseNumber++ << endl;
+        cout << "input=" << xmlfilename << endl;
+        cout << "output=";
 
-    verifica_vetor(buffer);
+        buffer = arquivo_para_vetor(xmlfilename);
+        verifica_vetor(buffer);
 
-    delete[] buffer;
+        std::vector<Cenario> cenarios = arquivo_para_matriz(buffer);
+        for (const Cenario& cenario : cenarios) {
+            cout << cenario.nome << " ";
+            verifica_area(cenario.matriz, cenario.x, cenario.y, cenario.altura, cenario.largura);
+        }
+
+        delete[] buffer;
+        cout << endl;
+    }
+
     return 0;
 }
