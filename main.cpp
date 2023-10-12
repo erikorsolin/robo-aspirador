@@ -128,9 +128,12 @@ std::vector<Cenario> vetor_para_matriz(char* buffer) {
             matriz_ptr += strlen("<matriz>");
             std::string str_matriz;
             for (int i = 0; i < cenario.altura * cenario.largura; i++) {
+                while (*matriz_ptr == '\n' || *matriz_ptr == '\r') {
+                        *matriz_ptr++;
+                }
                 str_matriz.push_back(*matriz_ptr++);
             }
-
+            
             cenario.matriz = new int*[cenario.altura];
             for (int i = 0; i < cenario.altura; i++) {
                 cenario.matriz[i] = new int[cenario.largura];
@@ -139,9 +142,6 @@ std::vector<Cenario> vetor_para_matriz(char* buffer) {
             int k = 0;
             for (int i = 0; i < cenario.altura; i++) {
                 for (int j = 0; j < cenario.largura; j++) {
-                    if (str_matriz[k] == '\n' || str_matriz[k] == '\r') {
-                        k++;
-                    }
                     cenario.matriz[i][j] = str_matriz[k++] - '0';
                 }
             }
@@ -169,6 +169,7 @@ void verifica_area(int** matriz, int x, int y, int altura, int largura) {
 
     if (matriz[y][x] == 0) {
         cout << '0';
+        cout << endl;
         return;
     }
 
@@ -236,14 +237,14 @@ int main() {
     if (!verifica_vetor(buffer)) {
         cout << "erro";
         delete[] buffer;
-        exit;
+        return 0;
     }
 
     std::vector<Cenario> cenarios = vetor_para_matriz(buffer);
 
     for (const Cenario& cenario : cenarios) {
         cout << cenario.nome << " ";
-        verifica_area(cenario.matriz, cenario.y-1, cenario.x-1, cenario.altura, cenario.largura);
+        verifica_area(cenario.matriz, cenario.y, cenario.x, cenario.altura, cenario.largura);
     }
 
     delete[] buffer;
