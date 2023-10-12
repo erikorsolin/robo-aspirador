@@ -42,7 +42,7 @@ char * arquivo_para_vetor(char * xmlfilename) {
 /// de aninhamento de arquivos .xml
 /// @param buffer Vetor de caracteres contendo os dados que
 /// deseja-se verificar
-void verifica_vetor(char * buffer) {
+bool verifica_vetor(char * buffer) {
     structures::ArrayStack<string> pilha(1000);
 
     char char_atual = buffer[0];
@@ -89,13 +89,11 @@ void verifica_vetor(char * buffer) {
         char_atual = buffer[++i];
     }
 
-    if (!pilha.empty()) {
+    if (!pilha.empty() || !count) {
         resultado = false;
     }
     
-    if (!resultado || !count) {
-        cout << "erro";
-    }
+    return resultado;
 }
 
 
@@ -106,7 +104,7 @@ struct Cenario {
     std::string nome;  // Adicionar membro para armazenar o nome do cenário
 };
 
-std::vector<Cenario> arquivo_para_matriz(char* buffer) {
+std::vector<Cenario> vetor_para_matriz(char* buffer) {
     std::vector<Cenario> cenarios;
     char* cenario_ptr = strstr(buffer, "<cenario>");
 
@@ -141,6 +139,9 @@ std::vector<Cenario> arquivo_para_matriz(char* buffer) {
             int k = 0;
             for (int i = 0; i < cenario.altura; i++) {
                 for (int j = 0; j < cenario.largura; j++) {
+                    if (str_matriz[k] == '\n' || str_matriz[k] == '\r') {
+                        k++;
+                    }
                     cenario.matriz[i][j] = str_matriz[k++] - '0';
                 }
             }
@@ -163,7 +164,12 @@ void verifica_area(int** matriz, int x, int y, int altura, int largura) {
     // Criar uma matriz R de 0 (zeros) com o mesmo tamanho da matriz de entrada lida
     int** R = new int*[altura];
     for (int i = 0; i < altura; i++) {
-        R[i] = new int[largura]();
+        R[i] = new int[largura];
+    }
+
+    if (matriz[y][x] == 0) {
+        cout << '0';
+        return;
     }
 
     // Matriz[y][x] = Matriz[i][j]
@@ -223,23 +229,25 @@ int main() {
     char xmlfilename[100];
     char * buffer;
 
-    while (cin >> xmlfilename) {
-        cout << "case=" << caseNumber++ << endl;
-        cout << "input=" << xmlfilename << endl;
-        cout << "output=";
+    cin >> xmlfilename;
 
-        buffer = arquivo_para_vetor(xmlfilename);
-        verifica_vetor(buffer);
+    buffer = arquivo_para_vetor(xmlfilename);
 
-        std::vector<Cenario> cenarios = arquivo_para_matriz(buffer);
-        for (const Cenario& cenario : cenarios) {
-            cout << cenario.nome << " ";
-            verifica_area(cenario.matriz, cenario.x, cenario.y, cenario.altura, cenario.largura);
-        }
-
+    if (!verifica_vetor(buffer)) {
+        cout << "erro";
         delete[] buffer;
-        cout << endl;
+        exit;
     }
+
+    std::vector<Cenario> cenarios = vetor_para_matriz(buffer);
+
+    for (const Cenario& cenario : cenarios) {
+        cout << cenario.nome << " ";
+        verifica_area(cenario.matriz, cenario.y-1, cenario.x-1, cenario.altura, cenario.largura);
+    }
+
+    delete[] buffer;
+    cout << endl;
 
     return 0;
 }
