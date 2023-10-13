@@ -99,15 +99,17 @@ bool verifica_vetor(char * buffer) {
 }
 
 
-// estrutura para armazenar os dados de um cenário
+/// @brief Estrutura para armazenar os dados de um cenário
 struct Cenario {
     int** matriz;
-    int x, y, altura, largura;
+    std::pair<int, int> coord_robo, dim_matriz;
     std::string nome;  
 };
 
 
-// Função para extrair os dados dos cenários e armazenar em um vetor de estruturas Cenario
+/// @brief Função para extrair os dados dos cenários e armazenar em um vetor de estruturas Cenario
+/// @param buffer Vetor de caracteres a ser extraido os dados
+/// @return Vetor contendo todos os cenários que o vetor continha
 std::vector<Cenario> vetor_para_matriz(char* buffer) {
     std::vector<Cenario> cenarios;
     char* cenario_ptr = strstr(buffer, "<cenario>"); // Criando ponteiro para a primeira ocorrência de <cenario> do buffer
@@ -126,16 +128,16 @@ std::vector<Cenario> vetor_para_matriz(char* buffer) {
         // Se todos os ponteiros forem válidos, extrair os dados do cenário
         if (nome_ptr && altura_ptr && largura_ptr && matriz_ptr && x_ptr && y_ptr) {
             cenario.nome = std::string(nome_ptr + strlen("<nome>"), strstr(nome_ptr, "</nome>") - (nome_ptr + strlen("<nome>")));  // Extrair o nome do cenário atual
-            cenario.altura = atoi(altura_ptr + strlen("<altura>"));     // Extrair a altura do cenário atual
-            cenario.largura = atoi(largura_ptr + strlen("<largura>"));  // Extrair a largura do cenário atual
-            cenario.x = atoi(x_ptr + strlen("<x>"));  // Extrair a coordenada x do cenário atual
-            cenario.y = atoi(y_ptr + strlen("<y>"));  // Extrair a coordenada y do cenário atual
+            cenario.dim_matriz.second = atoi(altura_ptr + strlen("<altura>"));     // Extrair a altura do cenário atual
+            cenario.dim_matriz.first = atoi(largura_ptr + strlen("<largura>"));  // Extrair a largura do cenário atual
+            cenario.coord_robo.first = atoi(x_ptr + strlen("<x>"));  // Extrair a coordenada x do cenário atual
+            cenario.coord_robo.second = atoi(y_ptr + strlen("<y>"));  // Extrair a coordenada y do cenário atual
 
             matriz_ptr += strlen("<matriz>");         // Avançar o ponteiro para o início da matriz
             std::string str_matriz;                   // Criar uma string para armazenar a matriz
 
             // Extrair a matriz do cenário atual
-            for (int i = 0; i < cenario.altura * cenario.largura; i++) {
+            for (int i = 0; i < cenario.dim_matriz.second * cenario.dim_matriz.first; i++) {
                 while (*matriz_ptr == '\n' || *matriz_ptr == '\r') {    // Ignorar quebras de linha
                         *matriz_ptr++;
                 }
@@ -143,15 +145,15 @@ std::vector<Cenario> vetor_para_matriz(char* buffer) {
             }
             
             // Alocar memória para a matriz do cenário atual
-            cenario.matriz = new int*[cenario.altura];
-            for (int i = 0; i < cenario.altura; i++) {
-                cenario.matriz[i] = new int[cenario.largura];
+            cenario.matriz = new int*[cenario.dim_matriz.second];
+            for (int i = 0; i < cenario.dim_matriz.second; i++) {
+                cenario.matriz[i] = new int[cenario.dim_matriz.first];
             }
 
             // Preencher a matriz do cenário atual com os dados extraídos
             int k = 0;
-            for (int i = 0; i < cenario.altura; i++) {
-                for (int j = 0; j < cenario.largura; j++) {
+            for (int i = 0; i < cenario.dim_matriz.second; i++) {
+                for (int j = 0; j < cenario.dim_matriz.first; j++) {
                     cenario.matriz[i][j] = str_matriz[k++] - '0';
                 }
             }
@@ -169,9 +171,15 @@ std::vector<Cenario> vetor_para_matriz(char* buffer) {
 
 
 
-
-// Função para verificar a área do componente conexo que contém a posição (x, y) na matriz
-void verifica_area(int** matriz, int x, int y, int altura, int largura) {
+/// @brief Função para verificar a área do componente conexo que contém a posição (x, y) na matriz
+/// @param matriz Matriz contendo todo o espaço em que o robo sera inserido
+/// @param coord_robo Coordenada em que o robo está na matriz (x,y)
+/// @param dim_matriz Dimensões da matriz
+void verifica_area(int** matriz, std::pair<int,int> coord_robo,std::pair<int,int> dim_matriz) {
+    int x = coord_robo.first;
+    int y = coord_robo.second;
+    int largura = dim_matriz.first;
+    int altura = dim_matriz.second;
     structures::ArrayQueue<std::pair<int, int>> fila; // Criando uma fila de pares de inteiros
     
     // Alocando memória para a matriz R
@@ -224,7 +232,7 @@ void verifica_area(int** matriz, int x, int y, int altura, int largura) {
         }
     }
 
-     // Contar a quantidade de 1s na matriz R para determinar a área do componente conexo
+    // Contar a quantidade de 1s na matriz R para determinar a área do componente conexo
     int area = 0;
     for (int i = 0; i < altura; i++) {
         for (int j = 0; j < largura; j++) {
@@ -246,10 +254,10 @@ void verifica_area(int** matriz, int x, int y, int altura, int largura) {
 
 
 int main() {
-    int caseNumber = 1;
     char xmlfilename[100];
     char * buffer;
 
+    // Recebe o nome do arquivo a ser lido
     cin >> xmlfilename;
 
     // Lê o arquivo e guarda os dados em um buffer
@@ -268,7 +276,7 @@ int main() {
     // Para cada cenário, verificar a área do componente conexo que contém a posição (x, y) na matriz
     for (const Cenario& cenario : cenarios) {
         cout << cenario.nome << " ";
-        verifica_area(cenario.matriz, cenario.x, cenario.y, cenario.altura, cenario.largura);
+        verifica_area(cenario.matriz, cenario.coord_robo, cenario.dim_matriz);
     }
 
     delete[] buffer;
