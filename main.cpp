@@ -167,37 +167,43 @@ void verifica_area(int** matriz, int x, int y, int altura, int largura) {
         R[i] = new int[largura];
     }
 
-    if (matriz[y][x] == 0) {
+    for (int linha = 0; linha < altura; linha++) {
+        for (int coluna = 0; coluna < largura; coluna++) {
+            R[linha][coluna] = 0;
+        }
+    }
+
+    if (matriz[x][y] == 0) {
         cout << '0';
         cout << endl;
         return;
     }
 
-    // Matriz[y][x] = Matriz[i][j]
-    fila.enqueue({y, x});
-    R[y][x] = 1;
+    // Matriz[x][y] = Matriz[i][j]
+    fila.enqueue({x, y});
+    R[x][y] = 1;
 
     // Enquanto a fila não estiver vazia
     while (!fila.empty()) {
         auto coord = fila.dequeue();
-        y = coord.first;
-        x = coord.second;
+        x = coord.first;
+        y = coord.second;
         
 
         // Definindo os vizinhos-4
-        std::pair<int, int> vizinhos[4] = {{y, x-1}, {y, x+1}, {y-1, x}, {y+1, x}};
+        std::pair<int, int> vizinhos[4] = {{x, y-1}, {x, y+1}, {x-1, y}, {x+1, y}};
         
         for (auto& vizinho : vizinhos) {
-            int ny = vizinho.first;
-            int nx = vizinho.second;
+            int nx = vizinho.first;
+            int ny = vizinho.second;
         
 
             // Verificar se o vizinho está dentro do domínio da matriz
-            if (nx >= 0 && nx < largura && ny >= 0 && ny < altura) {
+            if (ny >= 0 && ny < largura && nx >= 0 && nx < altura) {
                 // Verificar se o vizinho tem intensidade 1 em E e ainda não foi visitado em R
-                if (matriz[ny][nx] == 1 && R[ny][nx] == 0) {
-                    fila.enqueue({ny, nx});
-                    R[ny][nx] = 1;  // Marcar como visitado
+                if (matriz[nx][ny] == 1 && R[nx][ny] == 0) {
+                    fila.enqueue({nx, ny});
+                    R[nx][ny] = 1;  // Marcar como visitado
                 }
             }
         }
@@ -244,7 +250,7 @@ int main() {
 
     for (const Cenario& cenario : cenarios) {
         cout << cenario.nome << " ";
-        verifica_area(cenario.matriz, cenario.y, cenario.x, cenario.altura, cenario.largura);
+        verifica_area(cenario.matriz, cenario.x, cenario.y, cenario.altura, cenario.largura);
     }
 
     delete[] buffer;
