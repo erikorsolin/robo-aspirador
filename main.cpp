@@ -277,6 +277,12 @@ int main() {
     for (const Cenario& cenario : cenarios) {
         cout << cenario.nome << " ";
         verifica_area(cenario.matriz, cenario.coord_robo, cenario.dim_matriz);
+
+        // Libera a memória alocada pela matriz do cenário atual
+        for (int i = 0; i < cenario.dim_matriz.second; i++) {
+            delete[] cenario.matriz[i];
+        }
+        delete[] cenario.matriz;
     }
 
     delete[] buffer;
