@@ -1,5 +1,6 @@
-using namespace std;
+// Copyright [2023] <Vitor Praxedes Calegari e Erik Orsolin de Paula>
 
+using namespace std;
 #ifndef STRUCTURES_ARRAY_QUEUE_H
 #define STRUCTURES_ARRAY_QUEUE_H
 

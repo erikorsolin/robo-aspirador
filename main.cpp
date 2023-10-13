@@ -1,3 +1,5 @@
+// Copyright [2023] <Vitor Praxedes Calegari e Erik Orsolin de Paula>
+
 #include <iostream>
 #include <stdlib.h>
 #include <string>
