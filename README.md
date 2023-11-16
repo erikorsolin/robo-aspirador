@@ -1,4 +1,4 @@
-# Robô Aspirador
+# 🤖 Robô Aspirador
 Este repositório contém a implementação de um projeto que simula um robô aspirador navegando por diferentes cenários. O robô é capaz de identificar áreas sujas em um ambiente e calcular a área total que precisa ser limpa.
 ## Índice
 - [Sobre o Projeto](#sobre-o-projeto)
