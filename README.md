@@ -21,7 +21,7 @@ O projeto `robo-aspirador` foi desenvolvido como parte de uma disciplina de Estr
     ```
 2. Navegue até o diretório do projeto:
    ```
-   cd caminho/para/robo-aspirador
+   cd caminho/para/robo-aspirador/src
    
     ```
 
